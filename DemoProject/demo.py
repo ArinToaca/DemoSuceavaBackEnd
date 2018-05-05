@@ -61,7 +61,22 @@ def get_or_show_data():
         return 'OK'
     elif request.method == 'GET':
         cursor = db.execute('select timestamp, value from entries order by '
-                            'timestamp desc')
+                            'timestamp asc')
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
+        return jsonify(results)
+
+
+@app.route('/afterdate', methods=['POST'])
+def get_latest():
+    db = get_db()
+    if request.method == 'POST':
+        cursor = db.execute('select timestamp, value from entries '
+                            'where timestamp  > ?'
+                            'order by timestamp asc',
+                            [request.form['timestamp']])
         columns = [column[0] for column in cursor.description]
         results = []
         for row in cursor.fetchall():
